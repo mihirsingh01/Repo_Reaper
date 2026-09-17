@@ -1,0 +1,118 @@
+name: Release and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  audit-and-test:
+    name: Security Audit & Automated Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'ai-service/requirements.txt'
+
+      # Secret Scan
+      - name: Run Gitleaks Secret Detection
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Server Test & Lint
+      - name: Install and Test Server
+        run: |
+          cd server
+          npm ci
+          npm run build
+          npm test
+
+      # Client Build & Lint
+      - name: Install and Build Client
+        run: |
+          cd client
+          npm ci
+          npm run build
+
+      # AI Service Test
+      - name: Install and Test AI Service
+        env:
+          LLM_PROVIDER: mock
+        run: |
+          cd ai-service
+          pip install -r requirements.txt
+          python -m nltk.downloader stopwords punkt punkt_tab
+          pytest -v
+
+  create-github-release:
+    name: Publish GitHub Release
+    needs: audit-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: RepoRevive ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-production:
+    name: Trigger Cloud Deployments
+    needs: create-github-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Server Deploy Hook
+        if: ${{ env.RENDER_SERVER_DEPLOY_HOOK != '' }}
+        run: |
+          curl -X POST -s "${{ secrets.RENDER_SERVER_DEPLOY_HOOK }}"
+        env:
+          RENDER_SERVER_DEPLOY_HOOK: ${{ secrets.RENDER_SERVER_DEPLOY_HOOK }}
+
+      - name: Trigger Render AI Service Deploy Hook
+        if: ${{ env.RENDER_AI_DEPLOY_HOOK != '' }}
+        run: |
+          curl -X POST -s "${{ secrets.RENDER_AI_DEPLOY_HOOK }}"
+        env:
+          RENDER_AI_DEPLOY_HOOK: ${{ secrets.RENDER_AI_DEPLOY_HOOK }}
+
+      - name: Deploy Client to Vercel
+        if: ${{ env.VERCEL_TOKEN != '' }}
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./client
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
