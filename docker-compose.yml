@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: reporevive-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: reporevive-ai-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - AI_HOST=0.0.0.0
+      - AI_PORT=8000
+      - API_KEY=${AI_SERVICE_API_KEY:-reporevive-internal-ai-service-key-change-me}
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - AGENT_MAX_STEPS=${AGENT_MAX_STEPS:-10}
+      - AGENT_MAX_TOKENS_PER_RUN=${AGENT_MAX_TOKENS_PER_RUN:-16000}
+    volumes:
+      - ai-index-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: reporevive-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongo:27017/reporevive
+      - JWT_SECRET=${JWT_SECRET:-reporevive-dev-jwt-secret-replace-in-production}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - CORS_ORIGIN=http://localhost:5173
+      - AI_SERVICE_URL=http://ai-service:8000
+      - AI_SERVICE_API_KEY=${AI_SERVICE_API_KEY:-reporevive-internal-ai-service-key-change-me}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - DAILY_ANALYSIS_CAP_PER_USER=15
+      - AUTO_ANALYZE_TOP_K=5
+      - CACHE_TTL_HOURS=24
+      - STALE_MONTHS=12
+      - MIN_COMMITS=30
+      - RANK_W_RELEVANCE=0.40
+      - RANK_W_COVERAGE=0.30
+      - RANK_W_VIABILITY=0.30
+    depends_on:
+      mongo:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: reporevive-client
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:
+  ai-index-data:
