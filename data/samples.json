@@ -1,0 +1,60 @@
+{
+  "ideas": [
+    {
+      "id": "idea-01",
+      "rawText": "An app where small shop owners track stock levels, record sales, and get low-stock alerts on WhatsApp.",
+      "category": "inventory",
+      "sampleRepoMatch": "example-retail-tracker"
+    },
+    {
+      "id": "idea-02",
+      "rawText": "A simple habit tracking dashboard with streak analytics, daily reminders, and markdown note taking.",
+      "category": "productivity",
+      "sampleRepoMatch": "minimalist-habit-app"
+    },
+    {
+      "id": "idea-03",
+      "rawText": "A collaborative whiteboard for remote tutors and students with real-time drawing and formula latex rendering.",
+      "category": "education",
+      "sampleRepoMatch": "canvas-math-whiteboard"
+    },
+    {
+      "id": "idea-04",
+      "rawText": "An open source URL shortener with custom domains, QR code generation, and country-level click analytics.",
+      "category": "tools",
+      "sampleRepoMatch": "compact-link-shortener"
+    },
+    {
+      "id": "idea-05",
+      "rawText": "A micro-newsletter publishing platform where creators write in markdown and send email digests via Amazon SES.",
+      "category": "media",
+      "sampleRepoMatch": "ses-bulletin-mailer"
+    }
+  ],
+  "sampleStaleRepos": [
+    {
+      "githubId": 10101,
+      "fullName": "shoptrack/inventory-lite",
+      "url": "https://github.com/shoptrack/inventory-lite",
+      "description": "Minimal inventory and barcode tracker for mom-and-pop shops.",
+      "language": "JavaScript",
+      "licenseSpdx": "MIT",
+      "stars": 142,
+      "forks": 35,
+      "commitCount": 68,
+      "lastCommitAt": "2023-01-15T10:00:00Z"
+    },
+    {
+      "githubId": 10102,
+      "fullName": "dailyflow/habit-tracker",
+      "url": "https://github.com/dailyflow/habit-tracker",
+      "description": "Clean habit tracker with calendar heatmaps and offline storage.",
+      "language": "TypeScript",
+      "licenseSpdx": "Apache-2.0",
+      "stars": 89,
+      "forks": 12,
+      "commitCount": 47,
+      "lastCommitAt": "2023-04-10T12:00:00Z"
+    }
+  ]
+}
