@@ -1,0 +1,84 @@
+# Curated synonym and technical concept expansion map
+# Maps founder vernacular to technical software keywords used in codebases & READMEs
+
+login:
+  - jwt
+  - oauth
+  - authentication
+  - session
+  - auth
+  - token
+
+auth:
+  - jwt
+  - oauth
+  - bcrypt
+  - passport
+  - session
+
+inventory:
+  - stock
+  - warehouse
+  - sku
+  - catalog
+  - supply
+
+payments:
+  - stripe
+  - razorpay
+  - checkout
+  - billing
+  - paypal
+  - subscription
+
+chat:
+  - websocket
+  - socket.io
+  - realtime
+  - messaging
+  - xmpp
+  - matrix
+
+booking:
+  - appointment
+  - calendar
+  - slot
+  - reservation
+  - scheduling
+
+alerts:
+  - notification
+  - webhook
+  - twilio
+  - push
+  - sns
+  - email
+
+database:
+  - mongodb
+  - postgresql
+  - sqlite
+  - mysql
+  - orm
+  - mongoose
+
+dashboard:
+  - analytics
+  - metrics
+  - charts
+  - admin
+  - reporting
+
+search:
+  - elasticsearch
+  - meilisearch
+  - algolia
+  - query
+  - indexing
+
+whatsapp:
+  - twilio
+  - messagebird
+  - chatbot
+  - webhook
+  - messaging
