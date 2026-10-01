@@ -1,0 +1,37 @@
+{
+  "fullName": "shoptrack/inventory-lite",
+  "defaultBranch": "main",
+  "description": "Minimal inventory and barcode tracker for mom-and-pop shops.",
+  "language": "JavaScript",
+  "license": {
+    "spdx": "MIT",
+    "name": "MIT License"
+  },
+  "stars": 142,
+  "forks": 35,
+  "commitCount": 68,
+  "contributorCount": 3,
+  "openIssues": 4,
+  "openBugIssues": 1,
+  "lastCiConclusion": "success",
+  "lastCommitAt": "2023-01-15T10:00:00Z",
+  "archived": false,
+  "tree": [
+    {"path": "package.json", "type": "blob", "size": 340},
+    {"path": "README.md", "type": "blob", "size": 1820},
+    {"path": "src/index.js", "type": "blob", "size": 650},
+    {"path": "src/controllers/inventory.js", "type": "blob", "size": 1200},
+    {"path": "src/controllers/auth.js", "type": "blob", "size": 950},
+    {"path": "src/routes/api.js", "type": "blob", "size": 420},
+    {"path": "test/inventory.test.js", "type": "blob", "size": 800}
+  ],
+  "cachedFiles": {
+    "package.json": "{\n  \"name\": \"inventory-lite\",\n  \"dependencies\": {\n    \"express\": \"^4.18.2\",\n    \"jsonwebtoken\": \"^9.0.0\"\n  }\n}",
+    "README.md": "# Inventory Lite\nMinimal stock tracker.\n## Installation\n`npm install`\n## Usage\nRun the API with `npm start`.\n## Architecture\nUses express routes.",
+    "src/index.js": "const express = require('express');\nconst app = express();\nconst PORT = process.env.PORT || 3000;\napp.listen(PORT, () => console.log('Listening'));",
+    "src/controllers/inventory.js": "class InventoryService {\n  updateStock(sku, delta) {\n    // updates stock levels\n    this.stock = (this.stock || 0) + delta;\n    return this.stock;\n  }\n}",
+    "src/controllers/auth.js": "const jwt = require('jsonwebtoken');\nfunction authenticate(req, res, next) {\n  const token = req.headers['authorization'];\n  return jwt.verify(token, 'secret');\n}",
+    "src/routes/api.js": "const router = require('express').Router();\nrouter.get('/stock', (req, res) => res.json({ status: 'ok' }));\nmodule.exports = router;",
+    "test/inventory.test.js": "const assert = require('assert');\ndescribe('Stock test', () => {\n  it('updates stock', () => { assert.strictEqual(1, 1); });\n});"
+  }
+}
