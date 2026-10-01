@@ -1,0 +1,60 @@
+# Render Blueprint Specification for RepoRevive
+# https://render.com/docs/blueprint-spec
+
+services:
+  # 1. Express API Gateway & Orchestration Backend
+  - type: web
+    name: reporevive-server
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false # Set via Render Dashboard (MongoDB Atlas connection string)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: reporevive-ai-service
+          property: host
+      - key: AI_SERVICE_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: CLIENT_URL
+        sync: false # E.g., https://reporevive.vercel.app
+      - key: LLM_SPEND_KILL_SWITCH
+        value: "false"
+
+  # 2. FastAPI AI Service (NLP, Agents, Static Analysis)
+  - type: web
+    name: reporevive-ai-service
+    runtime: docker
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: AI_SERVICE_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: mock # Switch to anthropic or openai_compatible in production
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: LLM_SPEND_KILL_SWITCH
+        value: "false"

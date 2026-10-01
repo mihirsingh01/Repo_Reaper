@@ -1,0 +1,41 @@
+flowchart TD
+    Start([Founder Describes Idea in Plain English]) --> Refine[Call POST /ideas/refine]
+    Refine --> Checklist[Founder Reviews & Edits Checklist<br/>- Must-Have / Nice-to-Have<br/>- Keywords & Descriptions]
+    Checklist --> Confirm{Founder Confirms & Hits Search}
+    
+    Confirm --> CacheCheck{Is Query in Cache?<br/>Matches Checklist Hash?}
+    CacheCheck -- Yes --> ReturnCache[Load Cached Ranked Repositories]
+    
+    CacheCheck -- No --> Preprocess[NLP Preprocessing<br/>Tokenisation, Stop-words, Lemmatisation]
+    Preprocess --> Synonym[Synonym Expansion via Thesaurus]
+    Synonym --> QueryVec[Construct Weighted Query Vector]
+    QueryVec --> CosineSim[Compute Cosine Similarity against TF-IDF Index]
+    CosineSim --> TopK[Retrieve Top-K Candidate Stale Repositories]
+    
+    TopK --> AutoAnalyze[Job Runner Dispatches Background Analyses]
+    
+    subgraph MultiAgentAnalysis["Multi-Agent Viability Engine"]
+        Scout[Scout Agent: Repo Health & Stale Confirmation]
+        Structure[Structure Agent: Directory Layout & Architecture]
+        Coverage[Coverage Agent: Match Features to Source Files]
+        BugRisk[Bug Risk Agent: Static Linting & Commit Decay]
+        Deps[Deps Agent: Outdated Packages & OSV Vulnerabilities]
+        License[License Agent: SPDX Classification & Permissiveness]
+        
+        Scout --> Structure --> Coverage --> BugRisk --> Deps --> License
+        License --> Verifier[Anti-Hallucination Verifier Agent<br/>Validate Real File Paths & Drop Phantom Claims]
+        Verifier --> Scorer[Deterministic Scoring Engine<br/>Coverage % - Bug Penalty + Health Subscores]
+        Scorer --> Planner[Revival Planner Agent<br/>Founder Brief, Gaps & Effort Estimation]
+    end
+
+    AutoAnalyze --> MultiAgentAnalysis
+    ReturnCache --> Display
+    MultiAgentAnalysis --> Ranker[Deterministic Ranking Service<br/>Rank = 0.40*Rel + 0.30*Cov + 0.30*Viab]
+    
+    Ranker --> DisqualifyCheck{Has NO_LICENSE or CRITICAL_VULN?}
+    DisqualifyCheck -- Yes --> Disqualify[Disqualify from Best Match Hero Card]
+    DisqualifyCheck -- No --> BestMatch[Select #1 Ranked as Best Match]
+    
+    Disqualify --> Alternatives[Assign to Alternatives or More Matches]
+    BestMatch --> Display[Render Results Dashboard]
+    Display --> Deliverables[Founder Outputs:<br/>1. Best Match Hero Card<br/>2. Two Alternative Cards<br/>3. Detailed 7-Tab Report<br/>4. Printable Founder Brief]

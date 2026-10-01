@@ -1,0 +1,29 @@
+graph TB
+    subgraph MultiAgentOrchestrator["Multi-Agent Orchestrator Framework"]
+        Scout["1. Scout Agent<br/>- Checks Stale Criterion (&gt;12mo)<br/>- Verifies Commit Count (&ge;30)<br/>- Flags archived status"]
+        Structure["2. Structure Agent<br/>- Parses repository file tree<br/>- Identifies framework & build type<br/>- Classifies modularity & LOC"]
+        Coverage["3. Coverage Agent<br/>- Maps features to real files<br/>- Verifies keyword grounding<br/>- Assigns present/partial/missing"]
+        BugRisk["4. Bug Risk Agent<br/>- Runs fixed static linters (Ruff/ESLint)<br/>- Samples commits for regression signals<br/>- Calculates TODO/FIXME density"]
+        Deps["5. Dependencies Agent<br/>- Parses package manifests<br/>- Queries OSV for active CVEs<br/>- Checks outdated major versions"]
+        License["6. License Agent<br/>- Inspects LICENSE/COPYING files<br/>- Resolves SPDX identifier<br/>- Flags GPL/commercial restrictions"]
+        
+        Verifier{"7. Anti-Hallucination Verifier Agent<br/>- Cross-checks all cited file paths<br/>- Drops phantom / hallucinated claims<br/>- Enforces zero ungrounded confidence"}
+        
+        Scorer["8. Deterministic Scoring Engine<br/>- Coverage Score (Must=1.0, Nice=0.5)<br/>- Bug Risk Penalty Formula<br/>- Weighted Health Subscores<br/>- Viability % Calculation"]
+        
+        Planner["9. Revival Planner Agent<br/>- Compiles missing feature gaps<br/>- Estimates effort ranges (hours)<br/>- Drafts plain-English Founder Brief"]
+    end
+
+    Scout --> Structure
+    Structure --> Coverage
+    Structure --> BugRisk
+    Structure --> Deps
+    Structure --> License
+
+    Coverage --> Verifier
+    BugRisk --> Verifier
+    Deps --> Verifier
+    License --> Verifier
+
+    Verifier --> Scorer
+    Scorer --> Planner

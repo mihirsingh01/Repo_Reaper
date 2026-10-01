@@ -1,0 +1,77 @@
+erDiagram
+    User ||--o{ Idea : submits
+    User ||--o{ Query : executes
+    Idea ||--o{ Query : generates
+    Idea ||--o{ Analysis : targets
+    Repository ||--o{ Analysis : inspected_by
+    Repository ||--o{ Query : matched_in
+    IngestionJob ||--o{ Repository : discovers
+
+    User {
+        ObjectId _id PK
+        string email UK
+        string passwordHash
+        string role "founder | admin"
+        int dailyAnalysisCount
+        date lastAnalysisDate
+        date createdAt
+    }
+
+    Idea {
+        ObjectId _id PK
+        ObjectId userId FK
+        string rawText
+        object refined "summary, targetUsers, features"
+        string status "draft | confirmed | searching | done"
+        string checklistHash
+        date createdAt
+    }
+
+    Repository {
+        ObjectId _id PK
+        string githubId UK
+        string fullName UK
+        string defaultBranch
+        object githubMetrics "stars, forks, openIssues, commitCount"
+        object staleMetrics "monthsSinceLastCommit, isStale, lastCommitDate"
+        string licenseSpdx
+        array languages
+        date createdAt
+    }
+
+    Query {
+        ObjectId _id PK
+        ObjectId ideaId FK
+        string checklistHash
+        array candidateRepos "repoId, relevance, matchedTerms"
+        array rankedResults "repoId, compositeRank, isBestMatch"
+        date expiresAt
+        date createdAt
+    }
+
+    Analysis {
+        ObjectId _id PK
+        ObjectId repoId FK
+        ObjectId ideaId FK
+        object coverage "score, features, evidence"
+        object bugRisk "penalty, lintErrorsPer1k, openBugs"
+        object subScores "structure, bugRisk, deps, docs, license, history, tests"
+        float viability
+        float confidence
+        string verdict
+        array flags
+        array findings
+        object revivalPlan "gaps, steps, effortHours, risks"
+        string founderBrief
+        date createdAt
+    }
+
+    IngestionJob {
+        ObjectId _id PK
+        string status "queued | running | completed | failed"
+        object params "language, window, maxRepos"
+        object counts "seen, kept, rejected, byReason"
+        string error
+        date startedAt
+        date finishedAt
+    }

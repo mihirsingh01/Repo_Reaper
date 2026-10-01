@@ -1,0 +1,44 @@
+sequenceDiagram
+    autonumber
+    participant Client as React Client (Polling)
+    participant Server as Express Server
+    participant DB as MongoDB Atlas
+    participant AI as FastAPI AI Service
+    participant GH as GitHub REST API
+    participant OSV as OSV.dev & Registries
+
+    loop Every 3 seconds while searching/analyzing
+        Client->>Server: GET /api/ideas/:id/results
+        Server->>DB: Check completed Analysis documents
+        DB-->>Server: Return active analysis statuses
+        Server-->>Client: 200 OK (Progress percentage & available analyses)
+    end
+
+    Server->>AI: POST /agents/analyze (repoMetadata, checklist) [X-Request-Id]
+    
+    activate AI
+    AI->>GH: Get repository tree & commit log (read-only)
+    GH-->>AI: File listing & historical commits
+    
+    AI->>GH: Read manifest files (package.json / requirements.txt)
+    GH-->>AI: Manifest contents
+    
+    AI->>OSV: Query known CVEs for extracted dependencies
+    OSV-->>AI: Vulnerability records & severities
+    
+    AI->>GH: Sample high-risk source files for static linting
+    GH-->>AI: Source code snippets
+    
+    AI->>AI: Run Ruff / ESLint rules in read-only sandbox
+    AI->>AI: Verifier Agent checks all evidence paths against tree
+    AI->>AI: Deterministic Scorer computes Coverage & Viability
+    AI->>AI: Revival Planner generates gap list & Founder Brief
+    deactivate AI
+
+    AI-->>Server: Complete Analysis Payload
+    Server->>DB: Upsert Analysis document
+    Server->>Server: Re-compute composite ranking & select Best Match
+    Server->>DB: Update Query record with finalized rankings
+
+    Client->>Server: GET /api/ideas/:id/results
+    Server-->>Client: 200 OK (Completed Best Match, Alternatives, and Metrics)

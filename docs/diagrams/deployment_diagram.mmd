@@ -1,0 +1,48 @@
+graph TB
+    subgraph InternetZone["Public Internet (TLS 1.3)"]
+        Browser["User Workstation / Mobile Browser"]
+    end
+
+    subgraph VercelEdge["Vercel Global Edge Network"]
+        CDN["Vercel Edge Proxy"]
+        StaticSite["React 18 Static Bundle<br/>(SPA Rewrites via vercel.json)"]
+        CDN --> StaticSite
+    end
+
+    subgraph RenderPaaS["Render Cloud Platform (US-West / Oregon)"]
+        subgraph ExpressContainer["reporevive-server (Web Service)"]
+            NodeRuntime["Node.js 20 Alpine (Non-root 'node' user)"]
+            ExpressApp["Express API Gateway (:5000)"]
+            HelmetCSP["Helmet CSP + Strict CORS"]
+            InMemMetrics["In-Memory Metrics & Health Probes"]
+            NodeRuntime --- ExpressApp
+        end
+
+        subgraph AIContainer["reporevive-ai-service (Web Service)"]
+            PyRuntime["Python 3.11 Slim (Non-root 'appuser')"]
+            FastAPIApp["FastAPI Engine (:8000)"]
+            NLTKShared["Pre-downloaded NLTK Data (/usr/share/nltk_data)"]
+            ScikitIndex["Sparse TF-IDF Index (In-Memory RAM)"]
+            PyRuntime --- FastAPIApp
+        end
+    end
+
+    subgraph AtlasCloud["MongoDB Atlas Cloud (M0 Free Tier)"]
+        MongoCluster[("3-Node Replica Set<br/>TLS 1.3 Encryption<br/>SCRAM-SHA-256 Auth")]
+    end
+
+    subgraph ExternalThirdParty["Third-Party Web APIs"]
+        GitHubAPI["GitHub REST API (v3)"]
+        OSVAPI["OSV.dev Vulnerability API"]
+        AnthropicAPI["Anthropic / OpenAI API"]
+    end
+
+    %% Network Connections
+    Browser -->|HTTPS :443| CDN
+    Browser -->|HTTPS :443 /api/*| ExpressApp
+    ExpressApp -->|Internal HTTP + X-API-Key :8000| FastAPIApp
+    ExpressApp -->|TLS SRV :27017| MongoCluster
+    ExpressApp -->|HTTPS :443 ETag Cached| GitHubAPI
+    FastAPIApp -->|HTTPS :443 Read-Only| GitHubAPI
+    FastAPIApp -->|HTTPS :443 Read-Only| OSVAPI
+    FastAPIApp -->|HTTPS :443 TLS| AnthropicAPI

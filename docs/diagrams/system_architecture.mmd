@@ -1,0 +1,82 @@
+graph TB
+    subgraph ClientLayer["Frontend Client (Vercel)"]
+        UI["React 18 + Vite SPA"]
+        WIZ["Idea Wizard & Checklist Editor"]
+        RES["Results & Best Match Hero"]
+        REP["7-Tab Deep-Dive Report"]
+        BRIEF["Founder Brief (.md / PDF)"]
+        ADM_UI["Admin Observability Panel"]
+    end
+
+    subgraph GatewayLayer["API Gateway & Orchestrator (Render)"]
+        EXP["Express.js Server (:5000)"]
+        AUTH["JWT Auth & Role Guard"]
+        RATE["Rate Limiter & Kill Switch"]
+        ROUTER["Ideas / Search / Admin Routes"]
+        JOB["Background Job Runner"]
+        INGEST["GitHub Ingestion Engine"]
+        RANK["Deterministic Ranking Engine"]
+        METRICS["Metrics Collector & Health Probes"]
+    end
+
+    subgraph AILayer["AI & Analysis Microservice (Render)"]
+        FAST["FastAPI AI Engine (:8000)"]
+        REFINER["Idea Refiner (LLM / Mock)"]
+        NLP["NLP Matcher (TF-IDF + Cosine)"]
+        IDX["In-Memory Repository Index"]
+        ORCH["Multi-Agent Orchestrator"]
+        AGENTS["8 Read-Only Analysis Agents"]
+        VERIFY["Anti-Hallucination Verifier"]
+        SCORE["Deterministic Viability Scorer"]
+    end
+
+    subgraph DataLayer["Persistence Layer (MongoDB Atlas)"]
+        MDB[("MongoDB 7.0")]
+        USERS[("Users Collection")]
+        IDEAS[("Ideas Collection")]
+        REPOS[("Repositories Collection")]
+        QUERIES[("Queries Cache")]
+        ANALYSES[("Analyses Collection")]
+        JOBS[("IngestionJobs Collection")]
+    end
+
+    subgraph ExternalAPIs["External Read-Only APIs"]
+        GH["GitHub REST API (ETag & Rate-Limit)"]
+        NPM["npm Registry API"]
+        PYPI["PyPI JSON API"]
+        OSV["OSV.dev Vulnerability API"]
+        LLM["LLM Provider (Claude / OpenAI / Mock)"]
+    end
+
+    %% Client to Gateway
+    UI -->|HTTPS / JSON + Bearer Token| EXP
+    EXP --> AUTH
+    AUTH --> RATE
+    RATE --> ROUTER
+
+    %% Gateway to DB
+    ROUTER --> USERS
+    ROUTER --> IDEAS
+    ROUTER --> REPOS
+    ROUTER --> QUERIES
+    ROUTER --> ANALYSES
+    JOB --> JOBS
+
+    %% Gateway to AI Service
+    ROUTER -->|Internal HTTP + X-API-Key + X-Request-Id| FAST
+    FAST --> REFINER
+    FAST --> NLP
+    NLP --> IDX
+    FAST --> ORCH
+    ORCH --> AGENTS
+    AGENTS --> VERIFY
+    VERIFY --> SCORE
+
+    %% Ingestion and Tools to External
+    INGEST -->|Read-only ETag Queries| GH
+    AGENTS -->|Read-only File Inspection| GH
+    AGENTS -->|Package Metadata| NPM
+    AGENTS -->|Package Metadata| PYPI
+    AGENTS -->|CVE Query| OSV
+    REFINER --> LLM
+    ORCH --> LLM

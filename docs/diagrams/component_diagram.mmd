@@ -1,0 +1,67 @@
+classDiagram
+    class ClientComponents {
+        +AuthContext
+        +NewIdeaWizard
+        +ChecklistEditor
+        +ResultsPage
+        +BestMatchCard
+        +RepoReportPage
+        +FounderBriefPage
+        +AdminPage
+    }
+
+    class ServerControllers {
+        +authController
+        +ideaController
+        +searchController
+        +analysisController
+        +adminController
+    }
+
+    class ServerServices {
+        +AIClient
+        +RankingService
+        +JobRunner
+        +GitHubClient
+        +IngestionPipeline
+        +MetricsCollector
+    }
+
+    class AIServiceRouters {
+        +ideas_router (/ideas/refine)
+        +nlp_router (/nlp/match, /index/build)
+        +agents_router (/agents/analyze)
+    }
+
+    class AnalysisAgents {
+        +ScoutAgent
+        +StructureAgent
+        +CoverageAgent
+        +BugRiskAgent
+        +DependenciesAgent
+        +LicenseAgent
+        +RevivalPlannerAgent
+        +VerifierAgent
+    }
+
+    class DeterministicScorer {
+        +calculate_coverage_score()
+        +calculate_bug_penalty()
+        +calculate_viability()
+        +determine_verdict()
+    }
+
+    class AnalysisTools {
+        +GitHubFileTool
+        +NpmRegistryTool
+        +PyPiRegistryTool
+        +OsvVulnerabilityTool
+        +StaticLintTool
+    }
+
+    ClientComponents --> ServerControllers : REST API (JSON)
+    ServerControllers --> ServerServices : Business Logic
+    ServerServices --> AIServiceRouters : HTTP (Internal)
+    AIServiceRouters --> AnalysisAgents : Orchestration
+    AnalysisAgents --> AnalysisTools : Read-Only Inspection
+    AnalysisAgents --> DeterministicScorer : Aggregated Facts

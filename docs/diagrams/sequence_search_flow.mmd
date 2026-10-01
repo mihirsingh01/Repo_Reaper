@@ -1,0 +1,35 @@
+sequenceDiagram
+    autonumber
+    actor Founder as Founder (Browser)
+    participant Client as React Client
+    participant Server as Express Server (:5000)
+    participant DB as MongoDB Atlas
+    participant AI as FastAPI AI Service (:8000)
+
+    Founder->>Client: Enters raw idea & clicks "Refine"
+    Client->>Server: POST /api/ideas (rawText) [X-Request-Id]
+    Server->>AI: POST /ideas/refine (rawText)
+    AI-->>Server: Refined Checklist (summary, targetUsers, features)
+    Server->>DB: Save Idea document (status: "draft")
+    Server-->>Client: 201 Created (Idea + Checklist)
+    Client-->>Founder: Renders Checklist Editor
+
+    Founder->>Client: Modifies priorities/keywords & clicks "Find Repositories"
+    Client->>Server: PATCH /api/ideas/:id (confirmed checklist)
+    Server->>DB: Update Idea (status: "confirmed", checklistHash)
+    Server-->>Client: 200 OK
+
+    Client->>Server: POST /api/ideas/:id/search
+    Server->>DB: Query.findOne({ ideaId, checklistHash })
+    alt Cache Hit (valid within 24h)
+        DB-->>Server: Cached Query results
+        Server-->>Client: 200 OK (Ranked Candidates)
+    else Cache Miss
+        Server->>AI: POST /nlp/match (checklist features, topK=10)
+        AI->>AI: Preprocess text, TF-IDF vectorization, Cosine similarity
+        AI-->>Server: Candidate repo IDs + Relevance scores
+        Server->>DB: Fetch Repository documents for candidate IDs
+        Server->>DB: Save new Query cache document
+        Server->>Server: Enqueue background analysis jobs for top candidates
+        Server-->>Client: 200 OK (Initial Candidates + Status "analyzing")
+    end
