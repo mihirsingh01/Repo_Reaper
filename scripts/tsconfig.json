@@ -9,7 +9,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "typeRoots": ["../server/node_modules/@types"]
+    "baseUrl": ".",
+    "paths": {
+      "*": ["../server/node_modules/*"]
+    }
   },
   "include": ["**/*.ts"]
 }
