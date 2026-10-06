@@ -163,11 +163,14 @@ app.use((_req: Request, res: Response) => {
 });
 
 // Central error handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  logger.error(err, "Unhandled application error");
-  res.status(500).json({
-    error: "Internal server error",
-    message: env.NODE_ENV === "production" ? undefined : err.message,
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const statusCode = err.status || err.statusCode || 500;
+  if (statusCode >= 500) {
+    logger.error(err, "Unhandled application error");
+  }
+  res.status(statusCode).json({
+    error: statusCode === 400 ? "Bad Request" : "Internal server error",
+    message: env.NODE_ENV === "production" && statusCode >= 500 ? undefined : err.message,
     requestId: (_req as any).id,
   });
 });

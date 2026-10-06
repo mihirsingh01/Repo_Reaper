@@ -49,10 +49,10 @@ export interface ISubScores {
 }
 
 export interface IRevivalPlanStep {
-  order: number;
-  title: string;
-  description: string;
-  effortHours: number;
+  order?: number;
+  title?: string;
+  description?: string;
+  effortHours?: number;
 }
 
 export interface IRevivalPlan {

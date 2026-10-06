@@ -24,7 +24,7 @@ export function getVerdictBadgeColor(verdict?: string): string {
 }
 
 export function getLicenseBadgeColor(spdx?: string): { bg: string; text: string; border: string } {
-  if (!spdx || spdx.toLowerCase() === 'none' || spdx.toLowerCase() === 'noassertion') {
+  if (!spdx || ['none', 'noassertion', 'no_license'].includes(spdx.toLowerCase())) {
     return {
       bg: 'bg-rose-500/15',
       text: 'text-rose-400 font-bold',

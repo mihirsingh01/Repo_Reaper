@@ -15,7 +15,7 @@ export const ResultsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [pollCount, setPollCount] = useState(0);
 
-  const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchResults = async (currentPoll: number) => {
     if (!ideaId) return;

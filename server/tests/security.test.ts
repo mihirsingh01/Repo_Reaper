@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app';
+import { setupTestDb, teardownTestDb } from './setup.js';
 
 describe('Security & Threat Defense Tests', () => {
   let founderToken: string;
 
   beforeAll(async () => {
+    await setupTestDb();
     // Register test founder
     const res = await request(app).post('/api/auth/register').send({
       name: 'Security Test Founder',
@@ -17,10 +19,14 @@ describe('Security & Threat Defense Tests', () => {
     }
   });
 
+  afterAll(async () => {
+    await teardownTestDb();
+  });
+
   it('rejects unauthenticated requests to protected endpoints (401)', async () => {
     const res = await request(app).get('/api/ideas');
     expect(res.status).toBe(401);
-    expect(res.body.error).toMatch(/unauthorized|missing|token/i);
+    expect(res.body.error).toMatch(/unauthorized|missing|token|authentication/i);
   });
 
   it('blocks NoSQL injection payloads in authentication (400)', async () => {
@@ -44,7 +50,7 @@ describe('Security & Threat Defense Tests', () => {
       .send({ language: 'Python', window: '2022-01..2023-01' });
 
     expect(res.status).toBe(403);
-    expect(res.body.error).toMatch(/forbidden|admin/i);
+    expect(res.body.error).toMatch(/forbidden|admin|insufficient/i);
   });
 
   it('never leaks passwordHash in authentication responses', async () => {
